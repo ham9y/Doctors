@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>إدارة الأطباء – مستشفى سوهاج العام</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Tahoma, sans-serif; }
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            padding: 24px 20px;
+        }
+        h1 {
+            color: #1e3a5f;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .toolbar input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 24px;
+            border: 1.5px solid #cfdfed;
+            font-size: 1rem;
+            outline: none;
+        }
+        .toolbar button {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .toolbar button:hover { background: #247291; }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #f8fafc;
+            color: #0b2b3b;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover td { background: #f0f9ff; }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-edit { background: #facc15; color: #000; }
+        .btn-edit:hover { background: #eab308; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-delete:hover { background: #dc2626; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .modal h2 {
+            margin-top: 0;
+            color: #1e3a5f;
+        }
+        .field-group {
+            margin-bottom: 16px;
+        }
+        .field-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #0b2b3b;
+        }
+        .field-group input,
+        .field-group select,
+        .field-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cfdfed;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .field-group input:focus,
+        .field-group select:focus,
+        .field-group textarea:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 24px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #2c7da0;
+            color: white;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #0b2b3b;
+        }
+        .status-msg {
+            padding: 10px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+        .success { background: #dff0e4; color: #1e6f3f; }
+        .error { background: #ffe6e5; color: #b71c1c; }
+        .loading { background: #e9ecef; color: #2c7da0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 إدارة الأطباء – مستشفى سوهاج العام</h1>
+
+        <div class="toolbar">
+            <input type="text" id="searchInput" placeholder="بحث بالاسم أو رقم الهاتف..." oninput="filterTable()">
+            <button onclick="openAddModal()">➕ إضافة طبيب</button>
+            <button onclick="refreshData()" style="background:#6b7280;">🔄 تحديث</button>
+        </div>
+        <div id="status" class="status-msg"></div>
+
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الدرجة الوظيفية</th>
+                        <th>دفعة التخرج</th>
+                        <th>المؤهلات</th>
+                        <th>سنة الالتحاق</th>
+                        <th>أساسي/منتدب</th>
+                        <th>المستشفى الأخرى</th>
+                        <th>تاريخ الانتداب</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>رقم الهاتف</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>ملاحظات</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for Add / Edit -->
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">إضافة طبيب جديد</h2>
+            <form id="doctorForm" novalidate>
+                <input type="hidden" id="rowNum" value="">
+                <div class="field-group">
+                    <label>الاسم *</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="field-group">
+                    <label>الدرجة الوظيفية *</label>
+                    <select id="jobDegree" required>
+                        <option value="">-- اختر --</option>
+                        <option value="طبيب مقيم (نيابة)">طبيب مقيم (نيابة)</option>
+                        <option value="طبيب مقيم (زمالة)">طبيب مقيم (زمالة)</option>
+                        <option value="مساعد أخصائي">مساعد أخصائي</option>
+                        <option value="أخصائي">أخصائي</option>
+                        <option value="استشاري">استشاري</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>دفعة التخرج *</label>
+                    <input type="number" id="graduationYear" required>
+                </div>
+                <div class="field-group">
+                    <label>المؤهلات *</label>
+                    <textarea id="qualifications" rows="2" required></textarea>
+                </div>
+                <div class="field-group">
+                    <label>سنة الالتحاق *</label>
+                    <input type="number" id="joiningYear" required>
+                </div>
+                <div class="field-group">
+                    <label>أساسي/منتدب *</label>
+                    <select id="workStatus" required onchange="toggleSecondedFields()">
+                        <option value="">-- اختر --</option>
+                        <option value="أساسي">أساسي</option>
+                        <option value="منتدب من مستشفى سوهاج العام">منتدب من مستشفى سوهاج العام</option>
+                        <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى مستشفى سوهاج العام</option>
+                    </select>
+                </div>
+                <div id="secondedFields" style="display:none;">
+                    <div class="field-group">
+                        <label>المستشفى الأخرى *</label>
+                        <input type="text" id="otherHospital">
+                    </div>
+                    <div class="field-group">
+                        <label>تاريخ الانتداب *</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="field-group">
+                        <label>تاريخ انتهاء الانتداب *</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>رقم الهاتف *</label>
+                    <input type="tel" id="phone" pattern="[0-9]{10,15}" required>
+                </div>
+                <div class="field-group">
+                    <label>البريد الإلكتروني *</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="field-group">
+                    <label>ملاحظات</label>
+                    <textarea id="notes" rows="2"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">إلغاء</button>
+                    <button type="submit" class="btn-save">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ Replace with your script URL (web app deployed with access: Anyone)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwT3myDcRl6cqwtsVF-ee1RToTQFHckTiEV9blwkigywbsHXuJRqWdoxJ5Lz5S_O55B/exec';
+
+        let allData = [];          // full dataset from sheet
+        const tableBody = document.querySelector('#dataTable tbody');
+        const modal = document.getElementById('formModal');
+        const form = document.getElementById('doctorForm');
+        const statusDiv = document.getElementById('status');
+
+        // ─── Fetch all data from sheet ─────────────────
+        async function refreshData() {
+            showStatus('⏳ جاري تحميل البيانات...', 'loading');
+            try {
+                const res = await fetch(SCRIPT_URL);
+                if (!res.ok) throw new Error('فشل الاتصال');
+                allData = await res.json();
+                renderTable(allData);
+                showStatus('', '');  // clear
+            } catch (err) {
+                showStatus('⚠️ خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        // ─── Render table rows ─────────────────────────
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="13" style="text-align:center;">لا توجد بيانات</td></tr>';
+                return;
+            }
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row['الاسم'] || ''}</td>
+                    <td>${row['الدرجة الوظيفية'] || ''}</td>
+                    <td>${row['دفعة التخرج'] || ''}</td>
+                    <td>${row['المؤهلات'] || ''}</td>
+                    <td>${row['سنة الالتحاق بالمستشفى'] || ''}</td>
+                    <td>${row['أساسي / منتدب'] || ''}</td>
+                    <td>${row['المستشفى الأخرى'] || ''}</td>
+                    <td>${row['تاريخ الانتداب'] || ''}</td>
+                    <td>${row['تاريخ انتهاء الانتداب'] || ''}</td>
+                    <td>${formatPhone(row['رقم الهاتف']) || ''}</td>
+                    <td>${row['البريد الإلكتروني'] || ''}</td>
+                    <td>${row['ملاحظات إضافية'] || ''}</td>
+                    <td class="actions">
+                        <button class="btn-small btn-edit" onclick="openEditModal(${row.rowNum})">✏️ تعديل</button>
+                        <button class="btn-small btn-delete" onclick="deleteRow(${row.rowNum})">🗑️ حذف</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Clean up phone display (remove leading apostrophe if visible, though normally hidden)
+        function formatPhone(phone) {
+            if (!phone) return '';
+            return phone.toString().replace(/^'+/, '');  // just in case
+        }
+
+        // ─── Search filter ─────────────────────────────
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                renderTable(allData);
+                return;
+            }
+            const filtered = allData.filter(row => {
+                const name = row['الاسم'] ? row['الاسم'].toString() : '';
+                const phone = row['رقم الهاتف'] ? row['رقم الهاتف'].toString() : '';
+                return name.includes(query) || phone.includes(query);
+            });
+            renderTable(filtered);
+        }
+
+        // ─── Modal handling ────────────────────────────
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة طبيب جديد';
+            form.reset();
+            document.getElementById('rowNum').value = '';
+            document.getElementById('secondedFields').style.display = 'none';
+            removeRequiredFromSeconded();
+            modal.style.display = 'flex';
+        }
+
+        function openEditModal(rowNum) {
+            const doctor = allData.find(d => d.rowNum === rowNum);
+            if (!doctor) return;
+            document.getElementById('modalTitle').textContent = 'تعديل بيانات الطبيب';
+            document.getElementById('rowNum').value = rowNum;
+            // Populate fields
+            document.getElementById('name').value = doctor['الاسم'] || '';
+            document.getElementById('jobDegree').value = doctor['الدرجة الوظيفية'] || '';
+            document.getElementById('graduationYear').value = doctor['دفعة التخرج'] || '';
+            document.getElementById('qualifications').value = doctor['المؤهلات'] || '';
+            document.getElementById('joiningYear').value = doctor['سنة الالتحاق بالمستشفى'] || '';
+            document.getElementById('workStatus').value = doctor['أساسي / منتدب'] || '';
+            document.getElementById('otherHospital').value = doctor['المستشفى الأخرى'] || '';
+            document.getElementById('startDate').value = doctor['تاريخ الانتداب'] || '';
+            document.getElementById('endDate').value = doctor['تاريخ انتهاء الانتداب'] || '';
+            document.getElementById('phone').value = formatPhone(doctor['رقم الهاتف']) || '';
+            document.getElementById('email').value = doctor['البريد الإلكتروني'] || '';
+            document.getElementById('notes').value = doctor['ملاحظات إضافية'] || '';
+            toggleSecondedFields();
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Show/hide seconded fields in the modal
+        function toggleSecondedFields() {
+            const status = document.getElementById('workStatus').value;
+            const div = document.getElementById('secondedFields');
+            const isSeconded = status === 'منتدب من مستشفى سوهاج العام' || status === 'منتدب إلى مستشفى سوهاج العام';
+            div.style.display = isSeconded ? 'block' : 'none';
+            const fields = ['otherHospital', 'startDate', 'endDate'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (isSeconded) el.setAttribute('required', '');
+                else el.removeAttribute('required');
+            });
+        }
+
+        function removeRequiredFromSeconded() {
+            ['otherHospital', 'startDate', 'endDate'].forEach(id => {
+                document.getElementById(id).removeAttribute('required');
+            });
+        }
+
+        // ─── Form submission (Add / Update) ────────────
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rowNum = document.getElementById('rowNum').value;
+            const isUpdate = rowNum !== '';
+
+            // Gather data
+            const phoneRaw = document.getElementById('phone').value.trim();
+            // Prepend apostrophe to force text in sheets (preserve leading zero)
+            const phoneText = phoneRaw ? "'" + phoneRaw : '';
+
+            const payload = new URLSearchParams({
+                name: document.getElementById('name').value.trim(),
+                jobDegree: document.getElementById('jobDegree').value,
+                graduationYear: document.getElementById('graduationYear').value.trim(),
+                qualifications: document.getElementById('qualifications').value.trim(),
+                joiningYear: document.getElementById('joiningYear').value.trim(),
+                workStatus: document.getElementById('workStatus').value,
+                otherHospital: document.getElementById('otherHospital').value.trim() || '',
+                startDate: document.getElementById('startDate').value || '',
+                endDate: document.getElementById('endDate').value || '',
+                phone: phoneText,
+                email: document.getElementById('email').value.trim(),
+                notes: document.getElementById('notes').value.trim()
+            });
+
+            if (isUpdate) {
+                payload.append('action', 'update');
+                payload.append('rowNum', rowNum);
+            } else {
+                payload.append('action', 'add');
+            }
+
+            try {
+                showStatus('⏳ جاري الحفظ...', 'loading');
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: payload
+                });
+                const result = await res.json();
+                if (res.ok && result.status === 'success') {
+                    showStatus('✅ تم الحفظ بنجاح', 'success');
+                    closeModal();
+                    refreshData();
+                } else {
+                    showStatus('⚠️ ' + (result.message || 'خطأ غير متوقع'), 'error');
+                }
+            } catch (err) {
+                showStatus('⚠️ فشل الاتصال بالخادم', 'error');
+            }
+        });
+
+        // ─── Delete row (optional) ─────────────────────
+        async function deleteRow(rowNum) {
+            if (!confirm('هل أنت متأكد من حذف هذا الصف؟')) return;
+            // We can implement deletion by clearing the row, but for simplicity we'll just alert
+            alert('للحذف، يرجى مسح الصف يدوياً من جدول Google Sheets.');
+            // (True deletion requires script to delete row – avoid for now)
+        }
+
+        // ─── Status message helper ─────────────────────
+        function showStatus(msg, type) {
+            const div = document.getElementById('status');
+            div.textContent = msg;
+            div.className = 'status-msg ' + (type || '');
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => { div.className = 'status-msg'; div.textContent = ''; }, 4000);
+            }
+        }
+
+        // ─── Initial load ──────────────────────────────
+        refreshData();
+        window.onclick = (e) => { if (e.target === modal) closeModal(); };
+    </script>
+</body>
+</html>
