@@ -3,55 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>إدارة الأطباء – مستشفى سوهاج العام</title>
+    <title>إدارة بيانات الأطباء</title>
     <style>
-        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Tahoma, sans-serif; }
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Tahoma', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
         body {
             background: #f0f4f8;
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
+            min-height: 100vh;
+            padding: 0;
         }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            padding: 24px 20px;
-        }
-        h1 {
-            color: #1e3a5f;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        .toolbar {
+
+        /* ===== TOP NAV BAR ===== */
+        .top-bar {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c7da0 100%);
+            padding: 16px 24px;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .toolbar input {
+        .top-bar .brand {
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .top-bar .brand span {
+            font-weight: 400;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        /* ===== SEARCH BAR ===== */
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.15);
+            border-radius: 40px;
+            padding: 4px 8px;
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 24px;
-            border: 1.5px solid #cfdfed;
+            max-width: 520px;
+            min-width: 220px;
+            transition: background 0.2s;
+        }
+        .search-container:focus-within {
+            background: rgba(255,255,255,0.25);
+        }
+        .search-icon {
+            color: #fff;
+            font-size: 1.2rem;
+            padding: 0 8px;
+            opacity: 0.8;
+        }
+        .search-container input {
+            background: transparent;
+            border: none;
+            color: #fff;
             font-size: 1rem;
+            padding: 10px 8px;
+            width: 100%;
             outline: none;
         }
-        .toolbar button {
-            background: #2c7da0;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 24px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
+        .search-container input::placeholder {
+            color: rgba(255,255,255,0.7);
         }
-        .toolbar button:hover { background: #247291; }
-        .table-wrapper {
+
+        /* ===== ACTION BUTTONS IN TOP BAR ===== */
+        .top-bar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 22px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary {
+            background: #fff;
+            color: #1e3a5f;
+        }
+        .btn-primary:hover {
+            background: #e8f0f8;
+        }
+        .btn-secondary {
+            background: #2c7da0;
+            color: #fff;
+        }
+        .btn-secondary:hover { background: #247291; }
+        .btn-danger {
+            background: #d32f2f;
+            color: #fff;
+        }
+        .btn-danger:hover { background: #b71c1c; }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.82rem;
+        }
+        .btn-icon {
+            padding: 8px 12px;
+            font-size: 1rem;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* ===== STATS CARDS ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e3a5f;
+        }
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: #6b7b8d;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar select {
+            padding: 10px 16px;
+            border: 1.5px solid #cfdfed;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            background: #fff;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .filter-bar select:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+        .filter-bar .result-count {
+            margin-right: auto;
+            font-size: 0.9rem;
+            color: #6b7b8d;
+            font-weight: 500;
+        }
+
+        /* ===== TABLE ===== */
+        .table-container {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        .table-scroll {
             overflow-x: auto;
         }
         table {
@@ -59,77 +200,198 @@
             border-collapse: collapse;
             min-width: 900px;
         }
-        th, td {
-            padding: 12px 8px;
+        thead {
+            background: #e8f0f8;
+        }
+        thead th {
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1e3a5f;
             text-align: right;
-            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+            border-bottom: 2px solid #d0dce8;
+        }
+        tbody tr {
+            border-bottom: 1px solid #eef2f6;
+            transition: background 0.15s;
+        }
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+        tbody td {
+            padding: 12px 16px;
             font-size: 0.9rem;
+            color: #2d3748;
+            vertical-align: middle;
         }
-        th {
-            background: #f8fafc;
-            color: #0b2b3b;
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
             font-weight: 600;
-            position: sticky;
-            top: 0;
         }
-        tr:hover td { background: #f0f9ff; }
-        .actions {
+        .badge-blue { background: #e0f2fe; color: #0369a1; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-orange { background: #ffedd5; color: #9a3412; }
+        .badge-purple { background: #f3e8ff; color: #7e22ce; }
+        .badge-red { background: #ffe4e6; color: #9f1239; }
+        .badge-teal { background: #ccfbf1; color: #0f766e; }
+
+        .actions-cell {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            align-items: center;
         }
-        .btn-small {
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.8rem;
+        .btn-edit {
+            background: #e0f2fe;
+            color: #0369a1;
             border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-edit:hover { background: #bae6fd; }
+        .btn-delete {
+            background: #ffe4e6;
+            color: #9f1239;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover { background: #fecdd3; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: #2c7da0;
             font-weight: 600;
         }
-        .btn-edit { background: #facc15; color: #000; }
-        .btn-edit:hover { background: #eab308; }
-        .btn-delete { background: #ef4444; color: white; }
-        .btn-delete:hover { background: #dc2626; }
-        .modal {
+        .spinner-lg {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #2c7da0;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             background: rgba(0,0,0,0.5);
+            z-index: 200;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
         }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            width: 90%;
-            max-width: 600px;
+        .modal-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-card {
+            background: #fff;
+            border-radius: 28px;
+            max-width: 560px;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            padding: 28px 24px 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.25s ease;
         }
-        .modal h2 {
-            margin-top: 0;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
             color: #1e3a5f;
         }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* ===== FORM ===== */
         .field-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .field-group label {
             display: block;
             font-weight: 600;
             margin-bottom: 6px;
             color: #0b2b3b;
+            font-size: 0.95rem;
+        }
+        .required-star {
+            color: #d32f2f;
+            margin-right: 4px;
         }
         .field-group input,
         .field-group select,
         .field-group textarea {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
             border: 1.5px solid #cfdfed;
             border-radius: 20px;
-            font-size: 0.95rem;
+            background: #fff;
             outline: none;
+            font-family: inherit;
+            transition: 0.2s;
         }
         .field-group input:focus,
         .field-group select:focus,
@@ -137,356 +399,1032 @@
             border-color: #2c7da0;
             box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
         }
-        .modal-buttons {
-            display: flex;
+        .field-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin-top: 20px;
         }
-        .modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 24px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-save {
-            background: #2c7da0;
-            color: white;
-        }
-        .btn-cancel {
-            background: #e2e8f0;
-            color: #0b2b3b;
-        }
-        .status-msg {
-            padding: 10px;
-            border-radius: 20px;
-            text-align: center;
-            margin: 10px 0;
+        .conditional-group {
             display: none;
         }
-        .success { background: #dff0e4; color: #1e6f3f; }
-        .error { background: #ffe6e5; color: #b71c1c; }
-        .loading { background: #e9ecef; color: #2c7da0; }
+        .conditional-group.show {
+            display: block;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .modal-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        .toast {
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 4s forwards;
+            max-width: 90vw;
+            text-align: center;
+        }
+        .toast-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .toast-error { background: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+        .toast-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-8px); }
+        }
+
+        /* ===== CONFIRM DIALOG ===== */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 250;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .confirm-overlay.show { display: flex; }
+        .confirm-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.25s ease;
+        }
+        .confirm-card .confirm-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        .confirm-card h3 {
+            font-size: 1.2rem;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+        }
+        .confirm-card p {
+            color: #6b7b8d;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .confirm-actions .btn { flex: 1; justify-content: center; }
+
+        /* ===== DETAIL MODAL ===== */
+        .detail-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            font-weight: 600;
+            color: #1e3a5f;
+            min-width: 140px;
+            font-size: 0.9rem;
+        }
+        .detail-value {
+            color: #475569;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 32px;
+            padding-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .top-bar { padding: 12px 16px; }
+            .top-bar .brand { font-size: 1.1rem; }
+            .main-content { padding: 16px 12px; }
+            .field-row { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .modal-card { padding: 20px 16px 24px; border-radius: 20px; }
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
+            padding-bottom: 4px;
+        }
+        .pagination button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid #d0dce8;
+            background: #fff;
+            color: #1e3a5f;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pagination button:hover { background: #e8f0f8; }
+        .pagination button.active {
+            background: #2c7da0;
+            color: #fff;
+            border-color: #2c7da0;
+        }
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📋 إدارة الأطباء – مستشفى سوهاج العام</h1>
 
-        <div class="toolbar">
-            <input type="text" id="searchInput" placeholder="بحث بالاسم أو رقم الهاتف..." oninput="filterTable()">
-            <button onclick="openAddModal()">➕ إضافة طبيب</button>
-            <button onclick="refreshData()" style="background:#6b7280;">🔄 تحديث</button>
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="brand">
+            مستشفى سوهاج العام
+            <span>— إدارة الأطباء</span>
         </div>
-        <div id="status" class="status-msg"></div>
-
-        <div class="table-wrapper">
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>الدرجة الوظيفية</th>
-                        <th>دفعة التخرج</th>
-                        <th>المؤهلات</th>
-                        <th>سنة الالتحاق</th>
-                        <th>أساسي/منتدب</th>
-                        <th>المستشفى الأخرى</th>
-                        <th>تاريخ الانتداب</th>
-                        <th>تاريخ الانتهاء</th>
-                        <th>رقم الهاتف</th>
-                        <th>البريد الإلكتروني</th>
-                        <th>ملاحظات</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="search-container">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو الدرجة أو الهاتف..." autocomplete="off">
+        </div>
+        <div class="top-bar-actions">
+            <button class="btn btn-primary" onclick="openAddModal()">&#10010; إضافة طبيب</button>
+            <button class="btn btn-secondary btn-icon" onclick="refreshData()" title="تحديث البيانات">&#8635;</button>
         </div>
     </div>
 
-    <!-- Modal for Add / Edit -->
-    <div class="modal" id="formModal">
-        <div class="modal-content">
-            <h2 id="modalTitle">إضافة طبيب جديد</h2>
-            <form id="doctorForm" novalidate>
-                <input type="hidden" id="rowNum" value="">
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- STATS -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-num" id="statTotal">-</div>
+                <div class="stat-label">إجمالي الأطباء</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statConsultant">-</div>
+                <div class="stat-label">استشاري</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statSpecialist">-</div>
+                <div class="stat-label">أخصائي</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statBasic">-</div>
+                <div class="stat-label">أساسي</div>
+            </div>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+            <select id="filterDegree" onchange="applyFilters()">
+                <option value="">كل الدرجات</option>
+                <option value="طبيب مقيم (نيابة)">طبيب مقيم (نيابة)</option>
+                <option value="طبيب مقيم (زمالة)">طبيب مقيم (زمالة)</option>
+                <option value="مساعد أخصائي">مساعد أخصائي</option>
+                <option value="أخصائي">أخصائي</option>
+                <option value="استشاري">استشاري</option>
+            </select>
+            <select id="filterStatus" onchange="applyFilters()">
+                <option value="">كل الحالات</option>
+                <option value="أساسي">أساسي</option>
+                <option value="منتدب من مستشفى سوهاج العام">منتدب من</option>
+                <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى</option>
+            </select>
+            <span class="result-count" id="resultCount">جاري التحميل...</span>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الاسم</th>
+                            <th>الدرجة الوظيفية</th>
+                            <th>دفعة التخرج</th>
+                            <th>سنة الالتحاق</th>
+                            <th>الحالة</th>
+                            <th>الهاتف</th>
+                            <th>البريد</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="9">
+                                <div class="loading-state">
+                                    <div class="spinner-lg"></div>
+                                    <p>جاري تحميل البيانات...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination" id="pagination"></div>
+
+        <footer>وفقنا الله وإياكم</footer>
+    </div>
+
+    <!-- ===== ADD / EDIT MODAL ===== -->
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">&#10010; إضافة طبيب جديد</div>
+                <button class="modal-close" onclick="closeFormModal()">&times;</button>
+            </div>
+            <form id="dataForm" novalidate>
+                <input type="hidden" id="editRowId" value="">
                 <div class="field-group">
-                    <label>الاسم *</label>
-                    <input type="text" id="name" required>
+                    <label for="name">الاسم <span class="required-star">*</span></label>
+                    <input type="text" id="name" name="name" placeholder="الاسم الكامل" required autocomplete="name">
                 </div>
-                <div class="field-group">
-                    <label>الدرجة الوظيفية *</label>
-                    <select id="jobDegree" required>
-                        <option value="">-- اختر --</option>
-                        <option value="طبيب مقيم (نيابة)">طبيب مقيم (نيابة)</option>
-                        <option value="طبيب مقيم (زمالة)">طبيب مقيم (زمالة)</option>
-                        <option value="مساعد أخصائي">مساعد أخصائي</option>
-                        <option value="أخصائي">أخصائي</option>
-                        <option value="استشاري">استشاري</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label>دفعة التخرج *</label>
-                    <input type="number" id="graduationYear" required>
-                </div>
-                <div class="field-group">
-                    <label>المؤهلات *</label>
-                    <textarea id="qualifications" rows="2" required></textarea>
-                </div>
-                <div class="field-group">
-                    <label>سنة الالتحاق *</label>
-                    <input type="number" id="joiningYear" required>
-                </div>
-                <div class="field-group">
-                    <label>أساسي/منتدب *</label>
-                    <select id="workStatus" required onchange="toggleSecondedFields()">
-                        <option value="">-- اختر --</option>
-                        <option value="أساسي">أساسي</option>
-                        <option value="منتدب من مستشفى سوهاج العام">منتدب من مستشفى سوهاج العام</option>
-                        <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى مستشفى سوهاج العام</option>
-                    </select>
-                </div>
-                <div id="secondedFields" style="display:none;">
+                <div class="field-row">
                     <div class="field-group">
-                        <label>المستشفى الأخرى *</label>
-                        <input type="text" id="otherHospital">
+                        <label for="jobDegree">الدرجة الوظيفية <span class="required-star">*</span></label>
+                        <select id="jobDegree" name="jobDegree" required>
+                            <option value="" disabled selected>-- اختر --</option>
+                            <option value="طبيب مقيم (نيابة)">طبيب مقيم (نيابة)</option>
+                            <option value="طبيب مقيم (زمالة)">طبيب مقيم (زمالة)</option>
+                            <option value="مساعد أخصائي">مساعد أخصائي</option>
+                            <option value="أخصائي">أخصائي</option>
+                            <option value="استشاري">استشاري</option>
+                        </select>
                     </div>
                     <div class="field-group">
-                        <label>تاريخ الانتداب *</label>
-                        <input type="date" id="startDate">
+                        <label for="graduationYear">دفعة التخرج <span class="required-star">*</span></label>
+                        <input type="number" id="graduationYear" name="graduationYear" placeholder="مثال: 2015" required>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label for="qualifications">المؤهلات <span class="required-star">*</span></label>
+                    <textarea id="qualifications" name="qualifications" placeholder="أدخل المؤهلات (يمكنك كتابة عدة أسطر)" required></textarea>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="joiningYear">سنة الالتحاق <span class="required-star">*</span></label>
+                        <input type="number" id="joiningYear" name="joiningYear" placeholder="مثال: 2020" required>
                     </div>
                     <div class="field-group">
-                        <label>تاريخ انتهاء الانتداب *</label>
-                        <input type="date" id="endDate">
+                        <label for="workStatus">أساسي أو منتدب <span class="required-star">*</span></label>
+                        <select id="workStatus" name="workStatus" required>
+                            <option value="" disabled selected>-- اختر --</option>
+                            <option value="أساسي">أساسي</option>
+                            <option value="منتدب من مستشفى سوهاج العام">منتدب من مستشفى سوهاج العام</option>
+                            <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى مستشفى سوهاج العام</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="conditionalFields" class="conditional-group">
+                    <div class="field-group">
+                        <label for="otherHospital">المستشفى الأخرى <span class="required-star">*</span></label>
+                        <input type="text" id="otherHospital" name="otherHospital" placeholder="اسم المستشفى الأخرى">
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="startDate">تاريخ الانتداب <span class="required-star">*</span></label>
+                            <input type="date" id="startDate" name="startDate">
+                        </div>
+                        <div class="field-group">
+                            <label for="endDate">تاريخ انتهاء الانتداب <span class="required-star">*</span></label>
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="phone">رقم الهاتف <span class="required-star">*</span></label>
+                        <input type="tel" id="phone" name="phone" placeholder="05xxxxxxxx" required
+                               pattern="[0-9]{10,15}" title="أدخل رقم هاتف صالح (10-15 رقم)" autocomplete="tel">
+                    </div>
+                    <div class="field-group">
+                        <label for="email">البريد الإلكتروني <span class="required-star">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="example@domain.com" required autocomplete="email">
                     </div>
                 </div>
                 <div class="field-group">
-                    <label>رقم الهاتف *</label>
-                    <input type="tel" id="phone" pattern="[0-9]{10,15}" required>
+                    <label for="notes">ملاحظات إضافية (اختياري)</label>
+                    <textarea id="notes" name="notes" placeholder="أي ملاحظات تريد إضافتها..."></textarea>
                 </div>
-                <div class="field-group">
-                    <label>البريد الإلكتروني *</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="field-group">
-                    <label>ملاحظات</label>
-                    <textarea id="notes" rows="2"></textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeModal()">إلغاء</button>
-                    <button type="submit" class="btn-save">حفظ</button>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-secondary" id="submitBtn">&#10004; حفظ البيانات</button>
+                    <button type="button" class="btn btn-primary" onclick="closeFormModal()">إلغاء</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ===== DETAIL MODAL ===== -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">بيانات الطبيب</div>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div id="detailContent"></div>
+            <div class="modal-actions" style="margin-top:20px">
+                <button class="btn btn-secondary" id="detailEditBtn" onclick="editFromDetail()">&#9998; تعديل</button>
+                <button class="btn btn-primary" onclick="closeDetailModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONFIRM DIALOG ===== -->
+    <div class="confirm-overlay" id="confirmDialog">
+        <div class="confirm-card">
+            <div class="confirm-icon">&#9888;</div>
+            <h3>تأكيد الحذف</h3>
+            <p id="confirmMsg">هل أنت متأكد من حذف بيانات هذا الطبيب؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-danger" id="confirmYes">&#128465; حذف</button>
+                <button class="btn btn-primary" onclick="closeConfirm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ⚠️ Replace with your script URL (web app deployed with access: Anyone)
+    (function() {
+        // ===== CONFIG =====
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwT3myDcRl6cqwtsVF-ee1RToTQFHckTiEV9blwkigywbsHXuJRqWdoxJ5Lz5S_O55B/exec';
 
-        let allData = [];          // full dataset from sheet
-        const tableBody = document.querySelector('#dataTable tbody');
-        const modal = document.getElementById('formModal');
-        const form = document.getElementById('doctorForm');
-        const statusDiv = document.getElementById('status');
+        // ===== STATE =====
+        let allDoctors = [];
+        let filteredDoctors = [];
+        let currentPage = 1;
+        const PAGE_SIZE = 15;
+        let currentDetailRow = null;
 
-        // ─── Fetch all data from sheet ─────────────────
-        async function refreshData() {
-            showStatus('⏳ جاري تحميل البيانات...', 'loading');
-            try {
-                const res = await fetch(SCRIPT_URL);
-                if (!res.ok) throw new Error('فشل الاتصال');
-                allData = await res.json();
-                renderTable(allData);
-                showStatus('', '');  // clear
-            } catch (err) {
-                showStatus('⚠️ خطأ في تحميل البيانات', 'error');
-            }
-        }
+        // ===== DOM REFS =====
+        const searchInput = document.getElementById('searchInput');
+        const filterDegree = document.getElementById('filterDegree');
+        const filterStatus = document.getElementById('filterStatus');
+        const tableBody = document.getElementById('tableBody');
+        const paginationDiv = document.getElementById('pagination');
 
-        // ─── Render table rows ─────────────────────────
-        function renderTable(data) {
-            tableBody.innerHTML = '';
-            if (!data || data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="13" style="text-align:center;">لا توجد بيانات</td></tr>';
-                return;
-            }
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${row['الاسم'] || ''}</td>
-                    <td>${row['الدرجة الوظيفية'] || ''}</td>
-                    <td>${row['دفعة التخرج'] || ''}</td>
-                    <td>${row['المؤهلات'] || ''}</td>
-                    <td>${row['سنة الالتحاق بالمستشفى'] || ''}</td>
-                    <td>${row['أساسي / منتدب'] || ''}</td>
-                    <td>${row['المستشفى الأخرى'] || ''}</td>
-                    <td>${row['تاريخ الانتداب'] || ''}</td>
-                    <td>${row['تاريخ انتهاء الانتداب'] || ''}</td>
-                    <td>${formatPhone(row['رقم الهاتف']) || ''}</td>
-                    <td>${row['البريد الإلكتروني'] || ''}</td>
-                    <td>${row['ملاحظات إضافية'] || ''}</td>
-                    <td class="actions">
-                        <button class="btn-small btn-edit" onclick="openEditModal(${row.rowNum})">✏️ تعديل</button>
-                        <button class="btn-small btn-delete" onclick="deleteRow(${row.rowNum})">🗑️ حذف</button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
+        // ===== INIT =====
+        loadData();
 
-        // Clean up phone display (remove leading apostrophe if visible, though normally hidden)
-        function formatPhone(phone) {
-            if (!phone) return '';
-            return phone.toString().replace(/^'+/, '');  // just in case
-        }
+        // ===== SEARCH with debounce =====
+        let searchTimer = null;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                currentPage = 1;
+                applyFilters();
+            }, 300);
+        });
 
-        // ─── Search filter ─────────────────────────────
-        function filterTable() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                renderTable(allData);
-                return;
-            }
-            const filtered = allData.filter(row => {
-                const name = row['الاسم'] ? row['الاسم'].toString() : '';
-                const phone = row['رقم الهاتف'] ? row['رقم الهاتف'].toString() : '';
-                return name.includes(query) || phone.includes(query);
-            });
-            renderTable(filtered);
-        }
+        // ===== CONDITIONAL FIELDS =====
+        const workStatus = document.getElementById('workStatus');
+        const conditionalFields = document.getElementById('conditionalFields');
+        const otherHospitalInput = document.getElementById('otherHospital');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
 
-        // ─── Modal handling ────────────────────────────
-        function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'إضافة طبيب جديد';
-            form.reset();
-            document.getElementById('rowNum').value = '';
-            document.getElementById('secondedFields').style.display = 'none';
-            removeRequiredFromSeconded();
-            modal.style.display = 'flex';
-        }
+        workStatus.addEventListener('change', toggleConditionalFields);
 
-        function openEditModal(rowNum) {
-            const doctor = allData.find(d => d.rowNum === rowNum);
-            if (!doctor) return;
-            document.getElementById('modalTitle').textContent = 'تعديل بيانات الطبيب';
-            document.getElementById('rowNum').value = rowNum;
-            // Populate fields
-            document.getElementById('name').value = doctor['الاسم'] || '';
-            document.getElementById('jobDegree').value = doctor['الدرجة الوظيفية'] || '';
-            document.getElementById('graduationYear').value = doctor['دفعة التخرج'] || '';
-            document.getElementById('qualifications').value = doctor['المؤهلات'] || '';
-            document.getElementById('joiningYear').value = doctor['سنة الالتحاق بالمستشفى'] || '';
-            document.getElementById('workStatus').value = doctor['أساسي / منتدب'] || '';
-            document.getElementById('otherHospital').value = doctor['المستشفى الأخرى'] || '';
-            document.getElementById('startDate').value = doctor['تاريخ الانتداب'] || '';
-            document.getElementById('endDate').value = doctor['تاريخ انتهاء الانتداب'] || '';
-            document.getElementById('phone').value = formatPhone(doctor['رقم الهاتف']) || '';
-            document.getElementById('email').value = doctor['البريد الإلكتروني'] || '';
-            document.getElementById('notes').value = doctor['ملاحظات إضافية'] || '';
-            toggleSecondedFields();
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Show/hide seconded fields in the modal
-        function toggleSecondedFields() {
-            const status = document.getElementById('workStatus').value;
-            const div = document.getElementById('secondedFields');
+        function toggleConditionalFields() {
+            const status = workStatus.value;
             const isSeconded = status === 'منتدب من مستشفى سوهاج العام' || status === 'منتدب إلى مستشفى سوهاج العام';
-            div.style.display = isSeconded ? 'block' : 'none';
-            const fields = ['otherHospital', 'startDate', 'endDate'];
-            fields.forEach(id => {
-                const el = document.getElementById(id);
-                if (isSeconded) el.setAttribute('required', '');
-                else el.removeAttribute('required');
-            });
+            if (isSeconded) {
+                conditionalFields.classList.add('show');
+                otherHospitalInput.setAttribute('required', '');
+                startDateInput.setAttribute('required', '');
+                endDateInput.setAttribute('required', '');
+            } else {
+                conditionalFields.classList.remove('show');
+                otherHospitalInput.removeAttribute('required');
+                startDateInput.removeAttribute('required');
+                endDateInput.removeAttribute('required');
+                otherHospitalInput.value = '';
+                startDateInput.value = '';
+                endDateInput.value = '';
+            }
         }
 
-        function removeRequiredFromSeconded() {
-            ['otherHospital', 'startDate', 'endDate'].forEach(id => {
-                document.getElementById(id).removeAttribute('required');
-            });
-        }
+        // ===== PHONE INPUT: numbers only =====
+        document.getElementById('phone').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
 
-        // ─── Form submission (Add / Update) ────────────
-        form.addEventListener('submit', async (e) => {
+        // ===== FORM SUBMIT =====
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const rowNum = document.getElementById('rowNum').value;
-            const isUpdate = rowNum !== '';
 
-            // Gather data
-            const phoneRaw = document.getElementById('phone').value.trim();
-            // Prepend apostrophe to force text in sheets (preserve leading zero)
-            const phoneText = phoneRaw ? "'" + phoneRaw : '';
+            const name = document.getElementById('name').value.trim();
+            const jobDegree = document.getElementById('jobDegree').value;
+            const graduationYear = document.getElementById('graduationYear').value.trim();
+            const qualifications = document.getElementById('qualifications').value.trim();
+            const joiningYear = document.getElementById('joiningYear').value.trim();
+            const workStatusValue = workStatus.value;
+            const otherHospital = otherHospitalInput.value.trim();
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            const editRowId = document.getElementById('editRowId').value;
+
+            // Validation
+            if (!name || !jobDegree || !graduationYear || !qualifications || !joiningYear || !workStatusValue || !phone || !email) {
+                showToast('يرجى تعبئة جميع الحقول المطلوبة (*)', 'error');
+                return;
+            }
+            const gradYearNum = Number(graduationYear);
+            const joinYearNum = Number(joiningYear);
+            if (isNaN(gradYearNum) || !Number.isInteger(gradYearNum)) {
+                showToast('دفعة التخرج يجب أن تكون رقماً صحيحاً', 'error');
+                return;
+            }
+            if (isNaN(joinYearNum) || !Number.isInteger(joinYearNum)) {
+                showToast('سنة الالتحاق يجب أن تكون رقماً صحيحاً', 'error');
+                return;
+            }
+            if (!/^[0-9]{10,15}$/.test(phone)) {
+                showToast('رقم الهاتف يجب أن يحتوي على 10-15 رقماً', 'error');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showToast('يرجى إدخال بريد إلكتروني صحيح', 'error');
+                return;
+            }
+            const isSeconded = workStatusValue === 'منتدب من مستشفى سوهاج العام' || workStatusValue === 'منتدب إلى مستشفى سوهاج العام';
+            if (isSeconded && (!otherHospital || !startDate || !endDate)) {
+                showToast('يرجى تعبئة بيانات الانتداب', 'error');
+                return;
+            }
+
+            const phoneWithApostrophe = phone ? "'" + phone : '';
 
             const payload = new URLSearchParams({
-                name: document.getElementById('name').value.trim(),
-                jobDegree: document.getElementById('jobDegree').value,
-                graduationYear: document.getElementById('graduationYear').value.trim(),
-                qualifications: document.getElementById('qualifications').value.trim(),
-                joiningYear: document.getElementById('joiningYear').value.trim(),
-                workStatus: document.getElementById('workStatus').value,
-                otherHospital: document.getElementById('otherHospital').value.trim() || '',
-                startDate: document.getElementById('startDate').value || '',
-                endDate: document.getElementById('endDate').value || '',
-                phone: phoneText,
-                email: document.getElementById('email').value.trim(),
-                notes: document.getElementById('notes').value.trim()
+                action: editRowId ? 'update' : 'create',
+                name,
+                jobDegree,
+                graduationYear,
+                qualifications,
+                joiningYear,
+                workStatus: workStatusValue,
+                otherHospital: otherHospital || '',
+                startDate: startDate || '',
+                endDate: endDate || '',
+                phone: phoneWithApostrophe,
+                email,
+                notes: notes || ''
             });
 
-            if (isUpdate) {
-                payload.append('action', 'update');
-                payload.append('rowNum', rowNum);
-            } else {
-                payload.append('action', 'add');
+            if (editRowId) {
+                payload.set('rowId', editRowId);
             }
 
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-left:6px"></span> جاري الحفظ...';
+
             try {
-                showStatus('⏳ جاري الحفظ...', 'loading');
-                const res = await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: payload
                 });
-                const result = await res.json();
-                if (res.ok && result.status === 'success') {
-                    showStatus('✅ تم الحفظ بنجاح', 'success');
-                    closeModal();
-                    refreshData();
+
+                let result = null;
+                try {
+                    const ct = response.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) result = await response.json();
+                } catch(_){}
+
+                if (response.ok || (result && result.status === 'success')) {
+                    showToast(editRowId ? 'تم تحديث البيانات بنجاح!' : 'تم إضافة الطبيب بنجاح!', 'success');
+                    closeFormModal();
+                    loadData();
                 } else {
-                    showStatus('⚠️ ' + (result.message || 'خطأ غير متوقع'), 'error');
+                    const errMsg = result && result.message ? result.message : 'خطأ غير متوقع من الخادم';
+                    showToast(errMsg, 'error');
                 }
-            } catch (err) {
-                showStatus('⚠️ فشل الاتصال بالخادم', 'error');
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showToast('حدث خطأ في الاتصال، حاول مرة أخرى', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '&#10004; حفظ البيانات';
             }
         });
 
-        // ─── Delete row (optional) ─────────────────────
-        async function deleteRow(rowNum) {
-            if (!confirm('هل أنت متأكد من حذف هذا الصف؟')) return;
-            // We can implement deletion by clearing the row, but for simplicity we'll just alert
-            alert('للحذف، يرجى مسح الصف يدوياً من جدول Google Sheets.');
-            // (True deletion requires script to delete row – avoid for now)
-        }
+        // ===== LOAD DATA =====
+        async function loadData() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=read');
+                const ct = response.headers.get('content-type') || '';
+                let data = null;
+                if (ct.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    // Try parsing anyway
+                    const text = await response.text();
+                    data = JSON.parse(text);
+                }
 
-        // ─── Status message helper ─────────────────────
-        function showStatus(msg, type) {
-            const div = document.getElementById('status');
-            div.textContent = msg;
-            div.className = 'status-msg ' + (type || '');
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => { div.className = 'status-msg'; div.textContent = ''; }, 4000);
+                if (data && data.status === 'success' && Array.isArray(data.data)) {
+                    allDoctors = data.data;
+                } else if (Array.isArray(data)) {
+                    allDoctors = data;
+                } else {
+                    allDoctors = [];
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                allDoctors = [];
+                showToast('تعذر تحميل البيانات. تأكد من اتصال الإنترنت وإعداد Apps Script', 'error');
             }
+            applyFilters();
         }
 
-        // ─── Initial load ──────────────────────────────
-        refreshData();
-        window.onclick = (e) => { if (e.target === modal) closeModal(); };
+        // ===== APPLY FILTERS & SEARCH =====
+        window.applyFilters = function() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const degreeFilter = filterDegree.value;
+            const statusFilter = filterStatus.value;
+
+            filteredDoctors = allDoctors.filter(doc => {
+                const matchSearch = !searchTerm ||
+                    (doc.name && doc.name.toLowerCase().includes(searchTerm)) ||
+                    (doc.jobDegree && doc.jobDegree.toLowerCase().includes(searchTerm)) ||
+                    (doc.phone && doc.phone.replace(/'/g,'').toLowerCase().includes(searchTerm)) ||
+                    (doc.email && doc.email.toLowerCase().includes(searchTerm)) ||
+                    (doc.qualifications && doc.qualifications.toLowerCase().includes(searchTerm));
+
+                const matchDegree = !degreeFilter || doc.jobDegree === degreeFilter;
+                const matchStatus = !statusFilter || doc.workStatus === statusFilter;
+
+                return matchSearch && matchDegree && matchStatus;
+            });
+
+            renderTable();
+            renderStats();
+            renderPagination();
+
+            document.getElementById('resultCount').textContent =
+                'عرض ' + filteredDoctors.length + ' من ' + allDoctors.length + ' طبيب';
+        };
+
+        // ===== RENDER TABLE =====
+        function renderTable() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageData = filteredDoctors.slice(start, start + PAGE_SIZE);
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr><td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-icon">&#128203;</div>
+                            <p>لا توجد بيانات لعرضها</p>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = pageData.map((doc, i) => {
+                const idx = start + i + 1;
+                const degreeBadge = getDegreeBadge(doc.jobDegree);
+                const statusBadge = getStatusBadge(doc.workStatus);
+                const phoneDisplay = doc.phone ? doc.phone.replace(/'/g, '') : '';
+                const rowId = doc.rowId || doc.row || (start + i + 2);
+
+                return `<tr data-rowid="${rowId}">
+                    <td style="font-weight:600;color:#94a3b8">${idx}</td>
+                    <td style="font-weight:600;cursor:pointer;color:#1e3a5f" onclick="showDetail(${start + i})">${escapeHtml(doc.name || '')}</td>
+                    <td>${degreeBadge}</td>
+                    <td>${escapeHtml(doc.graduationYear || '')}</td>
+                    <td>${escapeHtml(doc.joiningYear || '')}</td>
+                    <td>${statusBadge}</td>
+                    <td dir="ltr" style="text-align:right">${escapeHtml(phoneDisplay)}</td>
+                    <td style="font-size:0.82rem">${escapeHtml(doc.email || '')}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-edit" onclick="showDetail(${start + i})">&#128196;</button>
+                            <button class="btn-edit" onclick="openEditModal(${start + i})">&#9998;</button>
+                            <button class="btn-delete" onclick="confirmDelete(${start + i})">&#128465;</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ===== RENDER STATS =====
+        function renderStats() {
+            document.getElementById('statTotal').textContent = allDoctors.length;
+            document.getElementById('statConsultant').textContent =
+                allDoctors.filter(d => d.jobDegree === 'استشاري').length;
+            document.getElementById('statSpecialist').textContent =
+                allDoctors.filter(d => d.jobDegree === 'أخصائي' || d.jobDegree === 'مساعد أخصائي').length;
+            document.getElementById('statBasic').textContent =
+                allDoctors.filter(d => d.workStatus === 'أساسي').length;
+        }
+
+        // ===== RENDER PAGINATION =====
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredDoctors.length / PAGE_SIZE);
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">&#8594;</button>`;
+
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) html += `<button disabled>...</button>`;
+            }
+
+            for (let p = startPage; p <= endPage; p++) {
+                html += `<button class="${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<button disabled>...</button>`;
+                html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">&#8592;</button>`;
+            paginationDiv.innerHTML = html;
+        }
+
+        window.goToPage = function(page) {
+            const totalPages = Math.ceil(filteredDoctors.length / PAGE_SIZE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // ===== BADGES =====
+        function getDegreeBadge(degree) {
+            const classes = {
+                'طبيب مقيم (نيابة)': 'badge-blue',
+                'طبيب مقيم (زمالة)': 'badge-purple',
+                'مساعد أخصائي': 'badge-teal',
+                'أخصائي': 'badge-green',
+                'استشاري': 'badge-orange'
+            };
+            const cls = classes[degree] || 'badge-blue';
+            return `<span class="badge ${cls}">${escapeHtml(degree || '')}</span>`;
+        }
+
+        function getStatusBadge(status) {
+            const classes = {
+                'أساسي': 'badge-green',
+                'منتدب من مستشفى سوهاج العام': 'badge-orange',
+                'منتدب إلى مستشفى سوهاج العام': 'badge-red'
+            };
+            const cls = classes[status] || 'badge-blue';
+            return `<span class="badge ${cls}">${escapeHtml(status || '')}</span>`;
+        }
+
+        // ===== SHOW DETAIL =====
+        window.showDetail = function(idx) {
+            const doc = filteredDoctors[idx];
+            if (!doc) return;
+            currentDetailRow = idx;
+
+            const fields = [
+                { label: 'الاسم', value: doc.name },
+                { label: 'الدرجة الوظيفية', value: doc.jobDegree },
+                { label: 'دفعة التخرج', value: doc.graduationYear },
+                { label: 'المؤهلات', value: doc.qualifications },
+                { label: 'سنة الالتحاق', value: doc.joiningYear },
+                { label: 'الحالة', value: doc.workStatus },
+                { label: 'المستشفى الأخرى', value: doc.otherHospital || '—' },
+                { label: 'تاريخ الانتداب', value: doc.startDate || '—' },
+                { label: 'انتهاء الانتداب', value: doc.endDate || '—' },
+                { label: 'الهاتف', value: doc.phone ? doc.phone.replace(/'/g, '') : '' },
+                { label: 'البريد الإلكتروني', value: doc.email },
+                { label: 'ملاحظات', value: doc.notes || '—' }
+            ];
+
+            document.getElementById('detailContent').innerHTML = fields.map(f =>
+                `<div class="detail-row">
+                    <div class="detail-label">${escapeHtml(f.label)}</div>
+                    <div class="detail-value">${escapeHtml(String(f.value))}</div>
+                </div>`
+            ).join('');
+
+            document.getElementById('detailModal').classList.add('show');
+        };
+
+        window.editFromDetail = function() {
+            closeDetailModal();
+            if (currentDetailRow !== null) openEditModal(currentDetailRow);
+        };
+
+        window.closeDetailModal = function() {
+            document.getElementById('detailModal').classList.remove('show');
+        };
+
+        // ===== ADD MODAL =====
+        window.openAddModal = function() {
+            document.getElementById('editRowId').value = '';
+            document.getElementById('modalTitle').innerHTML = '&#10010; إضافة طبيب جديد';
+            document.getElementById('dataForm').reset();
+            toggleConditionalFields();
+            document.getElementById('formModal').classList.add('show');
+        };
+
+        // ===== EDIT MODAL =====
+        window.openEditModal = function(idx) {
+            const doc = filteredDoctors[idx];
+            if (!doc) return;
+
+            document.getElementById('editRowId').value = doc.rowId || doc.row || '';
+            document.getElementById('modalTitle').innerHTML = '&#9998; تعديل بيانات الطبيب';
+            document.getElementById('name').value = doc.name || '';
+            document.getElementById('jobDegree').value = doc.jobDegree || '';
+            document.getElementById('graduationYear').value = doc.graduationYear || '';
+            document.getElementById('qualifications').value = doc.qualifications || '';
+            document.getElementById('joiningYear').value = doc.joiningYear || '';
+            document.getElementById('workStatus').value = doc.workStatus || '';
+            document.getElementById('otherHospital').value = doc.otherHospital || '';
+            document.getElementById('startDate').value = doc.startDate || '';
+            document.getElementById('endDate').value = doc.endDate || '';
+            document.getElementById('phone').value = doc.phone ? doc.phone.replace(/'/g, '') : '';
+            document.getElementById('email').value = doc.email || '';
+            document.getElementById('notes').value = doc.notes || '';
+
+            toggleConditionalFields();
+            document.getElementById('formModal').classList.add('show');
+        };
+
+        window.closeFormModal = function() {
+            document.getElementById('formModal').classList.remove('show');
+            document.getElementById('dataForm').reset();
+            document.getElementById('editRowId').value = '';
+            toggleConditionalFields();
+        };
+
+        // ===== DELETE =====
+        window.confirmDelete = function(idx) {
+            const doc = filteredDoctors[idx];
+            if (!doc) return;
+            document.getElementById('confirmMsg').textContent =
+                'هل أنت متأكد من حذف بيانات الدكتور/ة ' + (doc.name || '') + '؟';
+
+            document.getElementById('confirmYes').onclick = async function() {
+                closeConfirm();
+                const rowId = doc.rowId || doc.row || '';
+                if (!rowId) {
+                    showToast('لا يمكن تحديد صف البيانات للحذف', 'error');
+                    return;
+                }
+
+                try {
+                    const payload = new URLSearchParams({
+                        action: 'delete',
+                        rowId: String(rowId)
+                    });
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: payload
+                    });
+                    let result = null;
+                    try { result = await response.json(); } catch(_){}
+
+                    if (response.ok || (result && result.status === 'success')) {
+                        showToast('تم حذف البيانات بنجاح', 'success');
+                        loadData();
+                    } else {
+                        showToast('حدث خطأ أثناء الحذف', 'error');
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    showToast('حدث خطأ في الاتصال', 'error');
+                }
+            };
+
+            document.getElementById('confirmDialog').classList.add('show');
+        };
+
+        window.closeConfirm = function() {
+            document.getElementById('confirmDialog').classList.remove('show');
+        };
+
+        // ===== REFRESH =====
+        window.refreshData = function() {
+            showToast('جاري تحديث البيانات...', 'info');
+            loadData();
+        };
+
+        // ===== TOAST =====
+        function showToast(msg, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 4500);
+        }
+
+        // ===== ESCAPE HTML =====
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ===== EXPOSE loadData =====
+        window.loadData = loadData;
+
+        // ===== CLOSE MODALS ON OVERLAY CLICK =====
+        document.getElementById('formModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFormModal();
+        });
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDetailModal();
+        });
+        document.getElementById('confirmDialog').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirm();
+        });
+
+        // ===== KEYBOARD: ESC to close modals =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFormModal();
+                closeDetailModal();
+                closeConfirm();
+            }
+        });
+
+    })();
     </script>
+
+    <!--
+    ====================================================================
+    IMPORTANT: Update your Google Apps Script to support READ, UPDATE, DELETE
+    Copy the code below and replace your existing Google Apps Script:
+    ====================================================================
+
+    function doPost(e) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      var action = e.parameter.action;
+
+      if (action === 'create') {
+        // ADD NEW DOCTOR
+        sheet.appendRow([
+          e.parameter.name,
+          e.parameter.jobDegree,
+          e.parameter.graduationYear,
+          e.parameter.qualifications,
+          e.parameter.joiningYear,
+          e.parameter.workStatus,
+          e.parameter.otherHospital,
+          e.parameter.startDate,
+          e.parameter.endDate,
+          e.parameter.phone,
+          e.parameter.email,
+          e.parameter.notes
+        ]);
+        return jsonResponse({ status: 'success', message: 'تمت الإضافة بنجاح' });
+
+      } else if (action === 'update') {
+        // UPDATE EXISTING DOCTOR
+        var rowId = parseInt(e.parameter.rowId);
+        if (!rowId || rowId < 2) {
+          return jsonResponse({ status: 'error', message: 'معرف الصف غير صالح' });
+        }
+        sheet.getRange(rowId, 1, 1, 12).setValues([[
+          e.parameter.name,
+          e.parameter.jobDegree,
+          e.parameter.graduationYear,
+          e.parameter.qualifications,
+          e.parameter.joiningYear,
+          e.parameter.workStatus,
+          e.parameter.otherHospital,
+          e.parameter.startDate,
+          e.parameter.endDate,
+          e.parameter.phone,
+          e.parameter.email,
+          e.parameter.notes
+        ]]);
+        return jsonResponse({ status: 'success', message: 'تم التحديث بنجاح' });
+
+      } else if (action === 'delete') {
+        // DELETE DOCTOR
+        var rowId = parseInt(e.parameter.rowId);
+        if (!rowId || rowId < 2) {
+          return jsonResponse({ status: 'error', message: 'معرف الصف غير صالح' });
+        }
+        sheet.deleteRow(rowId);
+        return jsonResponse({ status: 'success', message: 'تم الحذف بنجاح' });
+
+      } else {
+        // DEFAULT: treat as create (backward compatible with original form)
+        sheet.appendRow([
+          e.parameter.name,
+          e.parameter.jobDegree,
+          e.parameter.graduationYear,
+          e.parameter.qualifications,
+          e.parameter.joiningYear,
+          e.parameter.workStatus,
+          e.parameter.otherHospital,
+          e.parameter.startDate,
+          e.parameter.endDate,
+          e.parameter.phone,
+          e.parameter.email,
+          e.parameter.notes
+        ]);
+        return jsonResponse({ status: 'success', message: 'تمت الإضافة بنجاح' });
+      }
+    }
+
+    function doGet(e) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      var action = e.parameter.action;
+
+      if (action === 'read') {
+        var data = sheet.getDataRange().getValues();
+        var headers = data[0];
+        var result = [];
+        for (var i = 1; i < data.length; i++) {
+          var row = {};
+          row.rowId = i + 1; // 1-based row number (row 1 is header)
+          for (var j = 0; j < headers.length; j++) {
+            row[headers[j]] = data[i][j];
+          }
+          result.push(row);
+        }
+        return jsonResponse({ status: 'success', data: result });
+      }
+
+      return jsonResponse({ status: 'error', message: 'Unknown action' });
+    }
+
+    function jsonResponse(data) {
+      return ContentService
+        .createTextOutput(JSON.stringify(data))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    ====================================================================
+    -->
+
 </body>
 </html>
