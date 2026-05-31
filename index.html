@@ -517,6 +517,7 @@
             color: #475569;
             font-size: 0.9rem;
             flex: 1;
+            white-space: pre-wrap;
         }
 
         /* ===== FOOTER ===== */
@@ -635,6 +636,7 @@
                 <option value="منتدب من مستشفى سوهاج العام">منتدب من</option>
                 <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى</option>
             </select>
+            <button class="btn btn-secondary btn-sm" id="btnFilterNotes" onclick="toggleNotesFilter()" style="padding:10px 18px;border-radius:24px">📝 ملاحظات</button>
             <span class="result-count" id="resultCount">جاري التحميل...</span>
         </div>
 
@@ -651,7 +653,7 @@
                             <th>سنة الالتحاق</th>
                             <th>الحالة</th>
                             <th>الهاتف</th>
-                            <th>البريد</th>
+                            <th>ملاحظات</th>
                             <th>إجراءات</th>
                         </tr>
                     </thead>
@@ -796,12 +798,53 @@
         // ===== CONFIG =====
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyf_Ssk6V67m5bt_LA0jtdxjXvN1rVFZmEbgp1nbTiZC_S_jGXeKQoMhEmzs-lBRvXb/exec';
 
+        // ===== ARABIC <-> ENGLISH FIELD MAPPING =====
+        // The Google Sheet returns Arabic header keys. We map them to English for internal use.
+        const AR_TO_EN = {
+            'الاسم': 'name',
+            'الدرجة الوظيفية': 'jobDegree',
+            'دفعة التخرج': 'graduationYear',
+            'المؤهلات': 'qualifications',
+            'سنة الالتحاق بالمستشفى': 'joiningYear',
+            'أساسي / منتدب': 'workStatus',
+            'المستشفى الأخرى': 'otherHospital',
+            'تاريخ الانتداب': 'startDate',
+            'تاريخ انتهاء الانتداب': 'endDate',
+            'رقم الهاتف': 'phone',
+            'البريد الإلكتروني': 'email',
+            'ملاحظات إضافية': 'notes',
+            'التاريخ والوقت': 'timestamp'
+        };
+
+        const EN_TO_AR = {};
+        for (const [ar, en] of Object.entries(AR_TO_EN)) {
+            EN_TO_AR[en] = ar;
+        }
+
+        // Convert a row from Arabic keys to English keys
+        function mapRowToEnglish(row) {
+            const mapped = { rowId: row.rowId };
+            for (const [arKey, enKey] of Object.entries(AR_TO_EN)) {
+                if (row.hasOwnProperty(arKey)) {
+                    mapped[enKey] = row[arKey];
+                }
+            }
+            // Also try English keys directly (in case the script returns them)
+            for (const enKey of Object.values(AR_TO_EN)) {
+                if (row.hasOwnProperty(enKey) && mapped[enKey] === undefined) {
+                    mapped[enKey] = row[enKey];
+                }
+            }
+            return mapped;
+        }
+
         // ===== STATE =====
         let allDoctors = [];
         let filteredDoctors = [];
         let currentPage = 1;
         const PAGE_SIZE = 15;
         let currentDetailRow = null;
+        let filterNotesOnly = false; // notes filter toggle
 
         // ===== DOM REFS =====
         const searchInput = document.getElementById('searchInput');
@@ -905,6 +948,7 @@
 
             const phoneWithApostrophe = phone ? "'" + phone : '';
 
+            // Send using English field names (as the existing Apps Script expects)
             const payload = new URLSearchParams({
                 action: editRowId ? 'update' : 'create',
                 name,
@@ -938,8 +982,8 @@
 
                 let result = null;
                 try {
-                    const ct = response.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) result = await response.json();
+                    const text = await response.text();
+                    try { result = JSON.parse(text); } catch(_) {}
                 } catch(_){}
 
                 if (response.ok || (result && result.status === 'success')) {
@@ -963,23 +1007,26 @@
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL + '?action=read');
-                const ct = response.headers.get('content-type') || '';
+                // Google Apps Script redirects, so we need to handle both JSON and text
                 let data = null;
-                if (ct.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    // Try parsing anyway
+                try {
                     const text = await response.text();
                     data = JSON.parse(text);
+                } catch(e) {
+                    // Try response.json() as fallback
+                    try { data = await response.json(); } catch(e2) {}
                 }
 
                 if (data && data.status === 'success' && Array.isArray(data.data)) {
-                    allDoctors = data.data;
+                    // Map Arabic keys to English
+                    allDoctors = data.data.map(mapRowToEnglish);
                 } else if (Array.isArray(data)) {
-                    allDoctors = data;
+                    allDoctors = data.map(mapRowToEnglish);
                 } else {
                     allDoctors = [];
                 }
+
+                console.log('Loaded doctors:', allDoctors.length, 'Sample:', allDoctors[0]);
             } catch (error) {
                 console.error('Load error:', error);
                 allDoctors = [];
@@ -995,17 +1042,22 @@
             const statusFilter = filterStatus.value;
 
             filteredDoctors = allDoctors.filter(doc => {
+                const phoneClean = String(doc.phone || '').replace(/'/g, '');
                 const matchSearch = !searchTerm ||
                     (doc.name && doc.name.toLowerCase().includes(searchTerm)) ||
                     (doc.jobDegree && doc.jobDegree.toLowerCase().includes(searchTerm)) ||
-                    (doc.phone && doc.phone.replace(/'/g,'').toLowerCase().includes(searchTerm)) ||
+                    phoneClean.toLowerCase().includes(searchTerm) ||
                     (doc.email && doc.email.toLowerCase().includes(searchTerm)) ||
                     (doc.qualifications && doc.qualifications.toLowerCase().includes(searchTerm));
 
                 const matchDegree = !degreeFilter || doc.jobDegree === degreeFilter;
                 const matchStatus = !statusFilter || doc.workStatus === statusFilter;
 
-                return matchSearch && matchDegree && matchStatus;
+                // Notes filter: only doctors with non-empty notes
+                const hasNotes = doc.notes && String(doc.notes).trim() !== '' && String(doc.notes).trim() !== '.';
+                const matchNotes = !filterNotesOnly || hasNotes;
+
+                return matchSearch && matchDegree && matchStatus && matchNotes;
             });
 
             renderTable();
@@ -1036,23 +1088,23 @@
                 const idx = start + i + 1;
                 const degreeBadge = getDegreeBadge(doc.jobDegree);
                 const statusBadge = getStatusBadge(doc.workStatus);
-                const phoneDisplay = doc.phone ? doc.phone.replace(/'/g, '') : '';
-                const rowId = doc.rowId || doc.row || (start + i + 2);
+                const phoneDisplay = String(doc.phone || '').replace(/'/g, '');
+                const rowId = doc.rowId || '';
 
                 return `<tr data-rowid="${rowId}">
                     <td style="font-weight:600;color:#94a3b8">${idx}</td>
                     <td style="font-weight:600;cursor:pointer;color:#1e3a5f" onclick="showDetail(${start + i})">${escapeHtml(doc.name || '')}</td>
                     <td>${degreeBadge}</td>
-                    <td>${escapeHtml(doc.graduationYear || '')}</td>
-                    <td>${escapeHtml(doc.joiningYear || '')}</td>
+                    <td>${escapeHtml(String(doc.graduationYear || ''))}</td>
+                    <td>${escapeHtml(String(doc.joiningYear || ''))}</td>
                     <td>${statusBadge}</td>
                     <td dir="ltr" style="text-align:right">${escapeHtml(phoneDisplay)}</td>
-                    <td style="font-size:0.82rem">${escapeHtml(doc.email || '')}</td>
+                    <td style="font-size:0.82rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(doc.notes || '')}">${escapeHtml(doc.notes || '')}</td>
                     <td>
                         <div class="actions-cell">
-                            <button class="btn-edit" onclick="showDetail(${start + i})">&#128196;</button>
-                            <button class="btn-edit" onclick="openEditModal(${start + i})">&#9998;</button>
-                            <button class="btn-delete" onclick="confirmDelete(${start + i})">&#128465;</button>
+                            <button class="btn-edit" onclick="showDetail(${start + i})" title="عرض">&#128196;</button>
+                            <button class="btn-edit" onclick="openEditModal(${start + i})" title="تعديل">&#9998;</button>
+                            <button class="btn-delete" onclick="confirmDelete(${start + i})" title="حذف">&#128465;</button>
                         </div>
                     </td>
                 </tr>`;
@@ -1138,12 +1190,25 @@
             return `<span class="badge ${cls}">${escapeHtml(status || '')}</span>`;
         }
 
+        // ===== FORMAT DATE FOR DISPLAY =====
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+            } catch(e) {
+                return dateStr;
+            }
+        }
+
         // ===== SHOW DETAIL =====
         window.showDetail = function(idx) {
             const doc = filteredDoctors[idx];
             if (!doc) return;
             currentDetailRow = idx;
 
+            const phoneClean = String(doc.phone || '').replace(/'/g, '');
             const fields = [
                 { label: 'الاسم', value: doc.name },
                 { label: 'الدرجة الوظيفية', value: doc.jobDegree },
@@ -1152,11 +1217,12 @@
                 { label: 'سنة الالتحاق', value: doc.joiningYear },
                 { label: 'الحالة', value: doc.workStatus },
                 { label: 'المستشفى الأخرى', value: doc.otherHospital || '—' },
-                { label: 'تاريخ الانتداب', value: doc.startDate || '—' },
-                { label: 'انتهاء الانتداب', value: doc.endDate || '—' },
-                { label: 'الهاتف', value: doc.phone ? doc.phone.replace(/'/g, '') : '' },
+                { label: 'تاريخ الانتداب', value: formatDate(doc.startDate) },
+                { label: 'انتهاء الانتداب', value: formatDate(doc.endDate) },
+                { label: 'الهاتف', value: phoneClean },
                 { label: 'البريد الإلكتروني', value: doc.email },
-                { label: 'ملاحظات', value: doc.notes || '—' }
+                { label: 'ملاحظات', value: doc.notes || '—' },
+                { label: 'تاريخ التسجيل', value: formatDate(doc.timestamp) }
             ];
 
             document.getElementById('detailContent').innerHTML = fields.map(f =>
@@ -1192,18 +1258,51 @@
             const doc = filteredDoctors[idx];
             if (!doc) return;
 
-            document.getElementById('editRowId').value = doc.rowId || doc.row || '';
+            document.getElementById('editRowId').value = doc.rowId || '';
             document.getElementById('modalTitle').innerHTML = '&#9998; تعديل بيانات الطبيب';
             document.getElementById('name').value = doc.name || '';
             document.getElementById('jobDegree').value = doc.jobDegree || '';
-            document.getElementById('graduationYear').value = doc.graduationYear || '';
+
+            // Handle graduationYear - might be a number
+            const gradYear = doc.graduationYear;
+            document.getElementById('graduationYear').value = gradYear !== undefined && gradYear !== null && gradYear !== '' ? gradYear : '';
+
             document.getElementById('qualifications').value = doc.qualifications || '';
-            document.getElementById('joiningYear').value = doc.joiningYear || '';
+
+            const joinYear = doc.joiningYear;
+            document.getElementById('joiningYear').value = joinYear !== undefined && joinYear !== null && joinYear !== '' ? joinYear : '';
+
             document.getElementById('workStatus').value = doc.workStatus || '';
             document.getElementById('otherHospital').value = doc.otherHospital || '';
-            document.getElementById('startDate').value = doc.startDate || '';
-            document.getElementById('endDate').value = doc.endDate || '';
-            document.getElementById('phone').value = doc.phone ? doc.phone.replace(/'/g, '') : '';
+
+            // Handle dates - might come as ISO strings
+            const startD = doc.startDate;
+            if (startD) {
+                try {
+                    const sd = new Date(startD);
+                    document.getElementById('startDate').value = isNaN(sd.getTime()) ? startD : sd.toISOString().split('T')[0];
+                } catch(e) {
+                    document.getElementById('startDate').value = startD;
+                }
+            } else {
+                document.getElementById('startDate').value = '';
+            }
+
+            const endD = doc.endDate;
+            if (endD) {
+                try {
+                    const ed = new Date(endD);
+                    document.getElementById('endDate').value = isNaN(ed.getTime()) ? endD : ed.toISOString().split('T')[0];
+                } catch(e) {
+                    document.getElementById('endDate').value = endD;
+                }
+            } else {
+                document.getElementById('endDate').value = '';
+            }
+
+            // Phone - clean apostrophe prefix
+            const phoneClean = String(doc.phone || '').replace(/'/g, '');
+            document.getElementById('phone').value = phoneClean;
             document.getElementById('email').value = doc.email || '';
             document.getElementById('notes').value = doc.notes || '';
 
@@ -1227,7 +1326,7 @@
 
             document.getElementById('confirmYes').onclick = async function() {
                 closeConfirm();
-                const rowId = doc.rowId || doc.row || '';
+                const rowId = doc.rowId || '';
                 if (!rowId) {
                     showToast('لا يمكن تحديد صف البيانات للحذف', 'error');
                     return;
@@ -1244,7 +1343,10 @@
                         body: payload
                     });
                     let result = null;
-                    try { result = await response.json(); } catch(_){}
+                    try {
+                        const text = await response.text();
+                        try { result = JSON.parse(text); } catch(_) {}
+                    } catch(_){}
 
                     if (response.ok || (result && result.status === 'success')) {
                         showToast('تم حذف البيانات بنجاح', 'success');
@@ -1269,6 +1371,23 @@
         window.refreshData = function() {
             showToast('جاري تحديث البيانات...', 'info');
             loadData();
+        };
+
+        // ===== TOGGLE NOTES FILTER =====
+        window.toggleNotesFilter = function() {
+            filterNotesOnly = !filterNotesOnly;
+            const btn = document.getElementById('btnFilterNotes');
+            if (filterNotesOnly) {
+                btn.style.background = '#1e3a5f';
+                btn.style.color = '#fff';
+                btn.innerHTML = '📝 ملاحظات (مفعّل)';
+            } else {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.innerHTML = '📝 ملاحظات';
+            }
+            currentPage = 1;
+            applyFilters();
         };
 
         // ===== TOAST =====
@@ -1326,31 +1445,13 @@
       var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
       var action = e.parameter.action;
 
-      if (action === 'create') {
-        // ADD NEW DOCTOR
-        sheet.appendRow([
-          e.parameter.name,
-          e.parameter.jobDegree,
-          e.parameter.graduationYear,
-          e.parameter.qualifications,
-          e.parameter.joiningYear,
-          e.parameter.workStatus,
-          e.parameter.otherHospital,
-          e.parameter.startDate,
-          e.parameter.endDate,
-          e.parameter.phone,
-          e.parameter.email,
-          e.parameter.notes
-        ]);
-        return jsonResponse({ status: 'success', message: 'تمت الإضافة بنجاح' });
-
-      } else if (action === 'update') {
+      if (action === 'update') {
         // UPDATE EXISTING DOCTOR
         var rowId = parseInt(e.parameter.rowId);
         if (!rowId || rowId < 2) {
           return jsonResponse({ status: 'error', message: 'معرف الصف غير صالح' });
         }
-        sheet.getRange(rowId, 1, 1, 12).setValues([[
+        sheet.getRange(rowId, 1, 1, 13).setValues([[
           e.parameter.name,
           e.parameter.jobDegree,
           e.parameter.graduationYear,
@@ -1362,7 +1463,8 @@
           e.parameter.endDate,
           e.parameter.phone,
           e.parameter.email,
-          e.parameter.notes
+          e.parameter.notes,
+          new Date().toISOString()
         ]]);
         return jsonResponse({ status: 'success', message: 'تم التحديث بنجاح' });
 
@@ -1376,7 +1478,7 @@
         return jsonResponse({ status: 'success', message: 'تم الحذف بنجاح' });
 
       } else {
-        // DEFAULT: treat as create (backward compatible with original form)
+        // CREATE (default) - backward compatible with original form
         sheet.appendRow([
           e.parameter.name,
           e.parameter.jobDegree,
@@ -1384,12 +1486,13 @@
           e.parameter.qualifications,
           e.parameter.joiningYear,
           e.parameter.workStatus,
-          e.parameter.otherHospital,
-          e.parameter.startDate,
-          e.parameter.endDate,
+          e.parameter.otherHospital || '',
+          e.parameter.startDate || '',
+          e.parameter.endDate || '',
           e.parameter.phone,
           e.parameter.email,
-          e.parameter.notes
+          e.parameter.notes || '',
+          new Date().toISOString()
         ]);
         return jsonResponse({ status: 'success', message: 'تمت الإضافة بنجاح' });
       }
@@ -1405,7 +1508,7 @@
         var result = [];
         for (var i = 1; i < data.length; i++) {
           var row = {};
-          row.rowId = i + 1; // 1-based row number (row 1 is header)
+          row.rowId = i + 1;
           for (var j = 0; j < headers.length; j++) {
             row[headers[j]] = data[i][j];
           }
