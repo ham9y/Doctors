@@ -600,25 +600,6 @@
     <!-- MAIN CONTENT -->
     <div class="main-content">
 
-        <!-- STATS -->
-        <div class="stats-row" id="statsRow">
-            <div class="stat-card">
-                <div class="stat-num" id="statTotal">-</div>
-                <div class="stat-label">إجمالي الأطباء</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="statConsultant">-</div>
-                <div class="stat-label">استشاري</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="statSpecialist">-</div>
-                <div class="stat-label">أخصائي</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="statBasic">-</div>
-                <div class="stat-label">أساسي</div>
-            </div>
-        </div>
 
         <!-- FILTER BAR -->
         <div class="filter-bar">
@@ -1061,7 +1042,6 @@
             });
 
             renderTable();
-            renderStats();
             renderPagination();
 
             document.getElementById('resultCount').textContent =
@@ -1111,16 +1091,6 @@
             }).join('');
         }
 
-        // ===== RENDER STATS =====
-        function renderStats() {
-            document.getElementById('statTotal').textContent = allDoctors.length;
-            document.getElementById('statConsultant').textContent =
-                allDoctors.filter(d => d.jobDegree === 'استشاري').length;
-            document.getElementById('statSpecialist').textContent =
-                allDoctors.filter(d => d.jobDegree === 'أخصائي' || d.jobDegree === 'مساعد أخصائي').length;
-            document.getElementById('statBasic').textContent =
-                allDoctors.filter(d => d.workStatus === 'أساسي').length;
-        }
 
         // ===== RENDER PAGINATION =====
         function renderPagination() {
