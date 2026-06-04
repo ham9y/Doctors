@@ -582,7 +582,7 @@
     <div class="top-bar">
         <div class="brand">
             مستشفى سوهاج العام
-            <span>— إدارة الأطباء</span>
+            <span>— أطباء النساء والتوليد</span>
         </div>
         <div class="search-container">
             <span class="search-icon">&#128269;</span>
@@ -631,12 +631,12 @@
                 <option value="استشاري">استشاري</option>
             </select>
             <select id="filterStatus" onchange="applyFilters()">
-                <option value="">كل الحالات</option>
+                <option value="">أساسي أم منتدب</option>
                 <option value="أساسي">أساسي</option>
                 <option value="منتدب من مستشفى سوهاج العام">منتدب من</option>
                 <option value="منتدب إلى مستشفى سوهاج العام">منتدب إلى</option>
             </select>
-            <button class="btn btn-secondary btn-sm" id="btnFilterNotes" onclick="toggleNotesFilter()" style="padding:10px 18px;border-radius:24px">📝 ملاحظات</button>
+            <button class="btn btn-secondary btn-sm" id="btnFilterNotes" onclick="toggleNotesFilter()" style="padding:10px 18px;border-radius:24px"> ☐ الذين لديهم ملاحظات 📝</button>
             <span class="result-count" id="resultCount">جاري التحميل...</span>
         </div>
 
@@ -1380,11 +1380,11 @@
             if (filterNotesOnly) {
                 btn.style.background = '#1e3a5f';
                 btn.style.color = '#fff';
-                btn.innerHTML = '📝 ملاحظات (مفعّل)';
+                btn.innerHTML = '☑ الذين لديهم ملاحظات فقط';
             } else {
                 btn.style.background = '';
                 btn.style.color = '';
-                btn.innerHTML = '📝 ملاحظات';
+                btn.innerHTML = ' ☐ الذين لديهم ملاحظات 📝';
             }
             currentPage = 1;
             applyFilters();
