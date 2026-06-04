@@ -985,7 +985,20 @@
         });
 
         // ===== LOAD DATA =====
+        function showTableLoading(){
+            tableBody.innerHTML = `
+                <tr><td colspan="9">
+                    <div class="loading-state">
+                        <div class="spinner-lg"></div>
+                        <p>جار التحميل</p>
+                    </div>
+                </td></tr>`;
+            document.getElementById('resultCount').textContent = 'جاري التحميل...';
+        }
+
         async function loadData() {
+            // ensure loading placeholder is visible during the network request
+            showTableLoading();
             try {
                 const response = await fetch(SCRIPT_URL + '?action=read');
                 // Google Apps Script redirects, so we need to handle both JSON and text
